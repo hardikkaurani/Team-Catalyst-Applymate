@@ -7,6 +7,11 @@ const router = express.Router();
 // Apply auth middleware to protect all resource routes
 router.use(protect);
 
+// @route   GET /api/resources/progress
+// @desc    Get resource preparation progress statistics
+// @access  Private
+router.get('/progress', (req, res) => resourceController.getProgress(req, res));
+
 // @route   POST /api/resources
 // @desc    Create a new preparation resource
 // @access  Private

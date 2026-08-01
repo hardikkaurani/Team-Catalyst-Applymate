@@ -52,6 +52,25 @@ class ResourceService {
   }
 
   /**
+   * Get resource preparation progress overview
+   */
+  async getProgress(userId) {
+    const resources = await Resource.find({ userId });
+    const total = resources.length;
+    const completed = resources.filter((r) => r.completionStatus === 'Completed').length;
+    const inProgress = resources.filter((r) => r.completionStatus === 'In Progress').length;
+    const notStarted = resources.filter((r) => r.completionStatus === 'Not Started').length;
+
+    return {
+      total,
+      completed,
+      inProgress,
+      notStarted,
+      percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  }
+
+  /**
    * Get resources specific to a company
    */
   async getResourcesByCompany(userId, companyId) {
@@ -95,7 +114,7 @@ class ResourceService {
     }
 
     const allowedUpdates = ['title', 'category', 'link', 'linkedCompanyId', 'companyId', 'completionStatus'];
-    
+
     allowedUpdates.forEach((field) => {
       if (updateData[field] !== undefined) {
         if (field === 'companyId') {

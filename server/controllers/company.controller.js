@@ -47,6 +47,27 @@ class CompanyController {
   }
 
   /**
+   * GET /api/companies/export/csv
+   * Export applications to CSV download
+   */
+  async exportCsv(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const csvData = await companyService.exportCsv(userId);
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="applymate_applications.csv"');
+      return res.status(200).send(csvData);
+    } catch (error) {
+      const statusCode = error.statusCode || 500;
+      return res.status(statusCode).json({
+        success: false,
+        message: error.message || 'Error exporting CSV',
+      });
+    }
+  }
+
+  /**
    * GET /api/companies/:id
    * Get single company application details
    */
@@ -93,7 +114,7 @@ class CompanyController {
   }
 
   /**
-   * PUT /api/companies/:id
+   * PUT / PATCH /api/companies/:id
    * Update existing company application
    */
   async updateCompany(req, res, next) {
@@ -112,6 +133,32 @@ class CompanyController {
       return res.status(statusCode).json({
         success: false,
         message: error.message || 'Error updating company application',
+      });
+    }
+  }
+
+  /**
+   * PATCH /api/companies/:id/status
+   * Update application status stage
+   */
+  async updateStatus(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const companyId = req.params.id;
+      const { status } = req.body;
+
+      const updatedCompany = await companyService.updateStatus(userId, companyId, status);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Status updated successfully',
+        data: updatedCompany,
+      });
+    } catch (error) {
+      const statusCode = error.statusCode || 500;
+      return res.status(statusCode).json({
+        success: false,
+        message: error.message || 'Error updating application status',
       });
     }
   }

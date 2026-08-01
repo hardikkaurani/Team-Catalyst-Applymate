@@ -44,7 +44,8 @@ export default function CompanyDetailPage() {
     setLoading(true);
     try {
       const response = await companyApi.getById(id);
-      const data = response.data?.data?.company || response.data?.company || response.data;
+      const raw = response.data;
+      const data = raw?.data?.company || raw?.company || raw?.data || raw;
       setCompany(data);
       setNotes(data.notes || '');
 
@@ -55,11 +56,13 @@ export default function CompanyDetailPage() {
       ]);
 
       if (resData.status === 'fulfilled') {
-        const rList = resData.value.data?.data?.resources || resData.value.data || [];
+        const rRaw = resData.value.data;
+        const rList = rRaw?.data?.resources || rRaw?.resources || rRaw?.data || rRaw || [];
         setResources(Array.isArray(rList) ? rList : []);
       }
       if (jourData.status === 'fulfilled') {
-        const jList = jourData.value.data?.data?.entries || jourData.value.data || [];
+        const jRaw = jourData.value.data;
+        const jList = jRaw?.data?.entries || jRaw?.entries || jRaw?.data || jRaw || [];
         setJournals(Array.isArray(jList) ? jList : []);
       }
     } catch (error) {
@@ -73,7 +76,8 @@ export default function CompanyDetailPage() {
   const handleStatusChange = async (newStatus) => {
     try {
       const response = await companyApi.updateStatus(id, newStatus);
-      const updated = response.data?.data?.company || response.data?.company || response.data;
+      const raw = response.data;
+      const updated = raw?.data?.company || raw?.company || raw?.data || raw;
       setCompany((prev) => ({
         ...prev,
         status: newStatus,
@@ -109,7 +113,7 @@ export default function CompanyDetailPage() {
     );
   }
 
-  if (!company) {
+  if (!company || !company.name) {
     return (
       <DashboardLayout>
         <div className="text-center py-16 space-y-4">

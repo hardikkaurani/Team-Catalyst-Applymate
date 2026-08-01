@@ -47,12 +47,14 @@ export default function ResourcesPage() {
       ]);
 
       if (resData.status === 'fulfilled') {
-        const rList = resData.value.data?.data?.resources || resData.value.data || [];
+        const rRaw = resData.value.data;
+        const rList = rRaw?.data?.resources || rRaw?.resources || rRaw?.data || rRaw || [];
         setResources(Array.isArray(rList) ? rList : []);
       }
 
       if (compData.status === 'fulfilled') {
-        const cList = compData.value.data?.data?.companies || compData.value.data || [];
+        const cRaw = compData.value.data;
+        const cList = cRaw?.data?.companies || cRaw?.companies || cRaw?.data || cRaw || [];
         setCompanies(Array.isArray(cList) ? cList : []);
       }
     } catch (error) {

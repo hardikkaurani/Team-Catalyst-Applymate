@@ -12,6 +12,11 @@ router.use(protect);
 // @access  Private
 router.get('/stats', (req, res, next) => companyController.getStats(req, res, next));
 
+// @route   GET /api/companies/export/csv
+// @desc    Export company applications as CSV
+// @access  Private
+router.get('/export/csv', (req, res, next) => companyController.exportCsv(req, res, next));
+
 // @route   GET /api/companies
 // @desc    Get all companies for logged-in user with search & status filter
 // @access  Private
@@ -31,6 +36,16 @@ router.post('/', (req, res, next) => companyController.createCompany(req, res, n
 // @desc    Update an existing company application
 // @access  Private
 router.put('/:id', (req, res, next) => companyController.updateCompany(req, res, next));
+
+// @route   PATCH /api/companies/:id
+// @desc    Update an existing company application
+// @access  Private
+router.patch('/:id', (req, res, next) => companyController.updateCompany(req, res, next));
+
+// @route   PATCH /api/companies/:id/status
+// @desc    Update company status stage specifically
+// @access  Private
+router.patch('/:id/status', (req, res, next) => companyController.updateStatus(req, res, next));
 
 // @route   DELETE /api/companies/:id
 // @desc    Delete a company application

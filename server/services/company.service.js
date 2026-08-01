@@ -5,8 +5,6 @@ const { VALID_STATUSES } = require('../models/company.model');
 class CompanyService {
   /**
    * Get all companies for the authenticated user with search and status filter options
-   * @param {string} userId - Authenticated user ID
-   * @param {object} queryParams - Query parameters (search, status)
    */
   async getAllCompanies(userId, queryParams = {}) {
     const { search, status } = queryParams;
@@ -15,7 +13,7 @@ class CompanyService {
     const query = { userId: new mongoose.Types.ObjectId(userId) };
 
     // Status filter
-    if (status && status.trim() !== '') {
+    if (status && status.trim() !== '' && status !== 'All') {
       if (!VALID_STATUSES.includes(status)) {
         const error = new Error(`Invalid status filter. Allowed values: ${VALID_STATUSES.join(', ')}`);
         error.statusCode = 400;
@@ -46,7 +44,6 @@ class CompanyService {
 
   /**
    * Calculate KPI dashboard metrics for user applications using MongoDB aggregation
-   * @param {string} userId - Authenticated user ID
    */
   async getStats(userId) {
     const userObjectId = new mongoose.Types.ObjectId(userId);
@@ -100,8 +97,6 @@ class CompanyService {
 
   /**
    * Get single company details by ID ensuring user ownership
-   * @param {string} userId - Authenticated user ID
-   * @param {string} companyId - Company document ID
    */
   async getCompanyById(userId, companyId) {
     if (!mongoose.Types.ObjectId.isValid(companyId)) {
@@ -126,8 +121,6 @@ class CompanyService {
 
   /**
    * Create a new company application entry
-   * @param {string} userId - Authenticated user ID
-   * @param {object} payload - Application details (name, role, status, jd, notes, resumeFile, applicationDate)
    */
   async createCompany(userId, payload) {
     const { name, role, status, jd, notes, resumeFile, applicationDate } = payload;
@@ -151,6 +144,8 @@ class CompanyService {
       throw error;
     }
 
+    const now = applicationDate ? new Date(applicationDate) : new Date();
+
     const company = await Company.create({
       userId,
       name: name.trim(),
@@ -159,7 +154,8 @@ class CompanyService {
       jd: jd ? jd.trim() : '',
       notes: notes ? notes.trim() : '',
       resumeFile: resumeFile ? resumeFile.trim() : '',
-      applicationDate: applicationDate ? new Date(applicationDate) : new Date(),
+      applicationDate: now,
+      statusHistory: [{ status: finalStatus, changedAt: now }],
     });
 
     return company;
@@ -167,9 +163,6 @@ class CompanyService {
 
   /**
    * Update an existing company application
-   * @param {string} userId - Authenticated user ID
-   * @param {string} companyId - Company document ID
-   * @param {object} updatePayload - Fields to update
    */
   async updateCompany(userId, companyId, updatePayload) {
     if (!mongoose.Types.ObjectId.isValid(companyId)) {
@@ -205,6 +198,11 @@ class CompanyService {
             throw error;
           }
           updateData[field] = statusValue;
+          if (statusValue !== company.status) {
+            const history = company.statusHistory || [];
+            history.push({ status: statusValue, changedAt: new Date() });
+            updateData.statusHistory = history;
+          }
         } else if (field === 'applicationDate') {
           updateData[field] = new Date(updatePayload[field]);
         } else if (typeof updatePayload[field] === 'string') {
@@ -225,9 +223,52 @@ class CompanyService {
   }
 
   /**
+   * Update status stage specifically and push to timeline history
+   */
+  async updateStatus(userId, companyId, status) {
+    if (!status || !VALID_STATUSES.includes(status.trim())) {
+      const error = new Error(`Invalid status. Allowed values: ${VALID_STATUSES.join(', ')}`);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const company = await Company.findOne({ _id: companyId, userId });
+    if (!company) {
+      const error = new Error('Application not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const newStatus = status.trim();
+    company.status = newStatus;
+    if (!company.statusHistory) company.statusHistory = [];
+    company.statusHistory.push({ status: newStatus, changedAt: new Date() });
+    await company.save();
+
+    return company.toObject();
+  }
+
+  /**
+   * Export user's company applications as CSV string
+   */
+  async exportCsv(userId) {
+    const companies = await Company.find({ userId }).sort({ applicationDate: -1 }).lean();
+
+    const headers = ['Company Name', 'Role', 'Application Date', 'Status', 'Job Description Link', 'Notes'];
+    const rows = companies.map((c) => [
+      `"${(c.name || '').replace(/"/g, '""')}"`,
+      `"${(c.role || '').replace(/"/g, '""')}"`,
+      `"${c.applicationDate ? new Date(c.applicationDate).toISOString().split('T')[0] : ''}"`,
+      `"${(c.status || '').replace(/"/g, '""')}"`,
+      `"${(c.jd || '').replace(/"/g, '""')}"`,
+      `"${(c.notes || '').replace(/"/g, '""')}"`,
+    ]);
+
+    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  }
+
+  /**
    * Delete a company application
-   * @param {string} userId - Authenticated user ID
-   * @param {string} companyId - Company document ID
    */
   async deleteCompany(userId, companyId) {
     if (!mongoose.Types.ObjectId.isValid(companyId)) {

@@ -45,6 +45,26 @@ class ResourceController {
   }
 
   /**
+   * Get resource progress statistics
+   */
+  async getProgress(req, res) {
+    try {
+      const userId = req.user.id;
+      const progress = await resourceService.getProgress(userId);
+      return res.status(200).json({
+        success: true,
+        data: progress,
+      });
+    } catch (error) {
+      const statusCode = error.statusCode || 500;
+      return res.status(statusCode).json({
+        success: false,
+        message: error.message || 'Server error while fetching resource progress',
+      });
+    }
+  }
+
+  /**
    * Get resources linked to a specific company
    */
   async getByCompany(req, res) {

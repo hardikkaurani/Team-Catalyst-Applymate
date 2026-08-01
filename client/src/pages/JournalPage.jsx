@@ -54,12 +54,14 @@ export default function JournalPage() {
       ]);
 
       if (jRes.status === 'fulfilled') {
-        const jList = jRes.value.data?.data?.entries || jRes.value.data || [];
+        const jRaw = jRes.value.data;
+        const jList = jRaw?.data?.entries || jRaw?.entries || jRaw?.data || jRaw || [];
         setJournals(Array.isArray(jList) ? jList : []);
       }
 
       if (cRes.status === 'fulfilled') {
-        const cList = cRes.value.data?.data?.companies || cRes.value.data || [];
+        const cRaw = cRes.value.data;
+        const cList = cRaw?.data?.companies || cRaw?.companies || cRaw?.data || cRaw || [];
         setCompanies(Array.isArray(cList) ? cList : []);
       }
     } catch (error) {
