@@ -772,17 +772,6 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/). All control
 
 ---
 
-## Team
-
-**Team Catalyst — 4 Contributors**
-
-| Name | GitHub |
-|---|---|
-| Hardik Kaurani | [@hardikkaurani](https://github.com/hardikkaurani) |
-| Aryan M | [@aryan](https://github.com/aryan) |
-| Garry | [@garryta](https://github.com/garryta) |
-| Team Member 4 | — |
-
 > Update this table with the correct GitHub usernames of your teammates.
 
 ---
