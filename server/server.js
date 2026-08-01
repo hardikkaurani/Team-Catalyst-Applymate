@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 
 const authRoutes = require('./routes/auth.routes');
 const resourceRoutes = require('./routes/resource.routes');
+const companyRoutes = require('./routes/company.routes');
 
 // Load environment variables from .env in root or server directory
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -20,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/companies', companyRoutes);
 
 // MongoDB Connection
 const MONGO_URI = process.env.DATABASE_URL || process.env.MONGO_URI || process.env.MONGODB_URI;
